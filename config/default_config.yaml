@@ -1,0 +1,49 @@
+/**:
+  ros__parameters:
+    dof: 7
+    joint_names: [
+      'base_link_to_link1',
+      'link1_to_link2',
+      'link2_to_link3',
+      'link3_to_link4',
+      'link4_to_link5',
+      'link5_to_link6',
+      'link6_to_link7',
+      ]
+    controller_action_topic: '/xarm7_controller/follow_joint_trajectory'
+    
+    results_output_dir: "~/Projects/xarm7_UKF_experiment/src/experiment_results"
+    
+    # Executor specific
+    waypoints: [
+      # Pose A — raised home, end effector high and centred
+      # joint2 at -0.9 lifts shoulder high, joint3 at -0.3 extends outward
+      0.0,  -0.9,  -0.3,  -0.4,  0.0,   1.0,  0.0,
+
+      # Pose B — sweep right from raised position
+      1.5,  -0.5,  -0.5,  -0.3,  0.5,   0.8,  0.8,
+
+      # Return through raised home briefly
+      0.0,  -0.9,  -0.3,  -0.4,  0.0,   1.0,  0.0,
+
+      # Pose C — sweep left from raised position  
+      -1.5,  -0.5,   0.5,  -0.3, -0.5,   0.8, -0.8,
+
+      # Return through raised home briefly
+      0.0,  -0.9,  -0.3,  -0.4,  0.0,   1.0,  0.0,
+
+      # Pose D — reach forward and lower
+      0.0,   0.4,   0.0,  -0.5,  0.0,   0.4,  0.0,
+      ]
+
+    waypoint_duration_sec: 1.5
+
+    # UKF specific tuning
+    ukf:
+      alpha: 0.001
+      beta: 2.0
+      kappa: 1.0
+      process_noise_std: 0.2
+      measurement_noise_std: 0.0316
+      v_scale: 0.5
+      velocity_time_constant: 0.15
