@@ -16,6 +16,8 @@ setup(
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
         # Install robot launch folder and its launch files
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
+        # Install robot rviz folder and its rviz config files
+        (os.path.join('share', package_name, 'rviz'), glob('rviz/*.rviz')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

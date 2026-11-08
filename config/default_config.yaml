@@ -12,7 +12,9 @@
       ]
     controller_action_topic: '/xarm7_controller/follow_joint_trajectory'
     
-    results_output_dir: "~/Projects/xarm7_UKF_experiment/src/experiment_results"
+
+    # ============>>>>>>>>>> Modify this path to your own results folder <<<<<<<<<<=============
+    results_output_dir: "~/Projects/xarm7_UKF_experiment/src/results"
     
     # Executor specific
     waypoints: [
