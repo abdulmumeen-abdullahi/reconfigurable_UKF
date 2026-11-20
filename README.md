@@ -7,6 +7,9 @@
 > **⚠️ Academic Embargo Notice:**
 
 > The core mathematical formulations, adaptive covariance mechanisms, and quantitative benchmark results associated with this architecture are currently under peer review. Full algorithmic details and evaluation metrics will be updated upon publication.
+>
+> The companion UFACTORY xArm7 simulation testbed and raw benchmark logs are maintained in [`abdulmumeen-abdullahi/xarm7_generalisedUKF_experiment`](https://github.com/abdulmumeen-abdullahi/xarm7_generalisedUKF_experiment) *(currently **private** during peer review; will be made public upon publication)*.
+
 
 ## Overview
 `ukf_dt_sync` is a generalized, hardware-agnostic ROS 2 package providing a reconfigurable Unscented Kalman Filter (UKF) framework for robotic joint state estimation. Designed to handle severe observation latency in distributed or computationally bound systems, the architecture dynamically scales to any $N$-Degree of Freedom ($N$-DOF) robotic manipulator without requiring source code modifications.
@@ -27,6 +30,17 @@ The package is composed of four decoupled ROS 2 nodes orchestrating the estimati
 2. **`injector`**: A synthetic channel-degradation node that buffers incoming `/joint_states` to introduce configurable network latency (`delay_ms`) and injects zero-mean Gaussian measurement noise, publishing degraded feedback to `/delayed_joint_states`.
 3. **`ukf_predictor`**: The primary ROS 2 estimation node wrapping the core `ukf.py` engine. It fuses delayed joint-position measurements with buffered controller reference velocities (`JointTrajectoryControllerState`), compensates for observation latency via forward prediction to publish real-time position and velocity estimates (`/predicted_joint_states`), and outputs Normalized Innovation Squared (NIS) consistency metrics (`/ukf_nis`).
 4. **`data_logger`**: An automated benchmarking node that samples ground-truth, delayed baseline, and UKF-predicted joint states at 10 Hz over a 60-second trial window. It computes position error metrics (RMSE, MAE, percentage improvement) alongside $\chi^2$ NIS filter-consistency statistics, exports CSV logs (`UKF_pred_results.csv`, `UKF_nis_results.csv`, and `<delay_ms>ms.csv`) to a decoupled results directory, and signals pipeline shutdown upon trial completion.
+
+
+## Companion Testbed & Experimental Results
+Because `ukf_dt_sync` is decoupled from robot-specific URDFs and controllers, full closed-loop simulation benchmarks are executed alongside the companion testbed repository:
+
+- **Repository:** [`abdulmumeen-abdullahi/xarm7_generalisedUKF_experiment`](https://github.com/abdulmumeen-abdullahi/xarm7_generalisedUKF_experiment) *(Private — under peer review)*
+- **Included Packages & Artifacts:**
+  - `ufactory_xarm7_description`: Robot URDF/Xacro kinematic and visual descriptions.
+  - `ufactory_xarm7_gazebo`: Gazebo (`gz sim`) simulation environment and `/clock` bridge configuration.
+  - `ufactory_xarm7_moveit_config`: MoveIt 2 and `ros2_control` joint trajectory controller configurations.
+  - `experiment_results`: Recorded RMSE, MAE, $\chi^2$ NIS consistency CSVs, and time-series trajectories across evaluated latency scenarios.
 
 ## Installation
 
