@@ -4,7 +4,8 @@
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)](LICENSE)
 
-> **⚠️ Academic Embargo Notice**
+> **⚠️ Academic Embargo Notice:**
+
 > The core mathematical formulations, adaptive covariance mechanisms, and quantitative benchmark results associated with this architecture are currently under peer review. Full algorithmic details and evaluation metrics will be updated upon publication.
 
 ## Overview
