@@ -1,13 +1,14 @@
 
 """
-ROS 2 node to evaluate the performance of an Unscented Kalman Filter (UKF).
-It subscribes to ground truth, delayed, and UKF-predicted joint states,
-recording the squared errors over a trial duration (60 seconds).
+ROS 2 benchmarking node to evaluate the performance of an Unscented Kalman Filter (UKF).
+It subscribes to ground-truth (/joint_states), delayed (/delayed_joint_states), and
+UKF-predicted (/predicted_joint_states) joint states alongside NIS diagnostics (/ukf_nis),
+sampling at 10 Hz over a fixed 60-second trial window.
 
-At the end of the trial, it calculates the Root Mean Square Error (RMSE) and
-Mean Absolute Error (MAE) for both the UKF and the baseline (delayed) signals.
-It tracks the Normalized Innovation Squared (NIS) to evaluate
-the statistical consistency of the filter. All results are appended to CSV files.
+At the end of the trial, it computes per-joint Root Mean Square Error (RMSE), percentage
+improvement, overall Mean Absolute Error (MAE), and 95% chi-square NIS consistency metrics.
+Summary metrics are appended to CSV files while time-series trajectories are exported to
+per-delay CSV logs, after which the node triggers rclpy.shutdown().
 """
 
 import rclpy

@@ -1,22 +1,23 @@
 """
-This node implements an Unscented Kalman Filter (UKF) to estimate the joint states 
-(position and velocity) of a robotic arm, specifically handling delayed measurements 
-by synchronizing with historical control commands. 
+ROS 2 estimation node implementing a reconfigurable Unscented Kalman Filter (UKF)
+to estimate real-time joint positions and velocities for an N-DOF manipulator under
+observation latency.
 
-It uses a control-aware process model with a velocity ramp to accurately simulate 
-real-world acceleration and deceleration. When a delayed measurement arrives, the 
-filter piecewise-integrates the past trajectory using the exact sequence of 
-historical commands, applies the measurement update, and calculates filter 
-consistency (NIS). A high-frequency timer then predicts this estimate to the 
-current wall-time for downstream controllers.
+It fuses delayed joint position measurements with buffered controller reference
+velocities using a velocity-ramp control-aware process model and velocity-scaled
+process noise (Q). When a delayed measurement arrives, the filter piecewise-integrates
+across historical command segments, executes the UKF measurement update, and publishes
+Normalized Innovation Squared (NIS) consistency metrics. A 100 Hz timer forward-predicts
+the updated state to the current ROS clock time (/clock) for downstream consumers.
 
 - Subscribes to:
-  - `/delayed_joint_states` (sensor_msgs/JointState): The delayed, noisy measurements.
-  - `/xarm7_controller/controller_state` (control_msgs/JointTrajectoryControllerState): To read the commanded reference velocities.
+  - /delayed_joint_states (sensor_msgs/JointState): Delayed, noisy joint position measurements.
+  - <controller_state_topic> (control_msgs/JointTrajectoryControllerState): Commanded reference velocities.
 - Publishes to:
-  - `/predicted_joint_states` (sensor_msgs/JointState): The real-time, zero-delay state estimate.
-  - `/ukf_nis` (std_msgs/Float64MultiArray): The Normalized Innovation Squared for filter tuning validation.
+  - /predicted_joint_states (sensor_msgs/JointState): Latency-compensated position and velocity estimates.
+  - /ukf_nis (std_msgs/Float64MultiArray): Total and per-joint Normalized Innovation Squared metrics.
 """
+
 
 # Import necessary libraries
 import numpy as np
@@ -92,11 +93,10 @@ class UKFPredictorNode(Node):
         super().__init__('ukf_predictor_node')
         self.set_parameters([rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)])
 
-        # self.declare_parameter('num_joints', 7)
         self.declare_parameter('dof', Parameter.Type.INTEGER)
         self.declare_parameter('predict_rate_hz', 100.0)
 
-        # Adjusted Alpha, Beta, and expanded Kappa for a 14-dimensional state spread.
+        # Adjusted Alpha, Beta, and expanded Kappa.
         # to prevent negative weights from blowing the covariance to infinity.
         self.declare_parameter('ukf.alpha', 1e-3)  
         self.declare_parameter('ukf.beta', 2.0)
@@ -289,7 +289,7 @@ class UKFPredictorNode(Node):
             return
 
         # enable dynamic process noise (Q) & piecewise integration.
-        # Iterates through historical command segments. For each segment, it recalculates Q 
+        # Iterates through historical command segments. For each segment, recalculates Q 
         # based on the exact segment duration (seg_dt) and predicts the state forward.
         q_var = self.q_std ** 2
         for seg_start, seg_end, u_seg in self._u_segments(self.ukf_time, t_meas):
@@ -304,7 +304,7 @@ class UKFPredictorNode(Node):
             # Scale the standard deviation based on speed
             dynamic_q_std = self.base_q_std + (self.v_scale * velocity_magnitude)
             dynamic_q_std = min(dynamic_q_std, 0.5) # PREVENTS MATH EXPLOSIONS
-            # Square it to get the variance for the Q matrix
+            # Square dynamic_q_std to get the variance for the Q matrix
             q_var = dynamic_q_std ** 2
 
             # Populate the kinematically coupled Q matrix
@@ -331,7 +331,7 @@ class UKFPredictorNode(Node):
         nis_total = float(self.ukf.y @ np.linalg.solve(self.ukf.S, self.ukf.y))
         nis_per_joint = (self.ukf.y ** 2) / np.diag(self.ukf.S)
         nis_msg = Float64MultiArray()
-        nis_msg.data = [nis_total] + nis_per_joint.tolist()  # index 0 = total, 1..7 = joint1..7
+        nis_msg.data = [nis_total] + nis_per_joint.tolist() 
         self.nis_pub.publish(nis_msg)
 
 

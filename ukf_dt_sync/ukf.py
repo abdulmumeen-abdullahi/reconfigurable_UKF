@@ -1,8 +1,11 @@
 """
-Provides the core mathematical implementation of the Unscented Kalman Filter, 
-using the scaled unscented transform (Van der Merwe / Wan formulation). It handles 
-sigma point generation, non-linear state prediction, and measurement updates
-To be used by ukf_predictor.py
+Core mathematical implementation of the Unscented Kalman Filter (UKF) using the
+scaled unscented transform (Van der Merwe / Wan formulation).
+
+Handles deterministic (2n + 1) sigma-point generation through Cholesky decomposition,
+control-input-aware non-linear state prediction, measurement updates with innovation
+caching (y, S) for NIS validation, and covariance symmetry/eigenvalue stabilization
+to guarantee positive-definiteness. To be used by ukf_predictor.py
 """
 
 # Import necessary libraries

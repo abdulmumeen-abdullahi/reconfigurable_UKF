@@ -1,10 +1,10 @@
 """
-ROS 2 node that subscribes to a JointState topic, 
-buffers the incoming messages to introduce an artificial time delay, 
-injects Gaussian noise into the joint position measurements, 
-and then republishes the modified messages through the /delayed_joint_states topic.
+ROS 2 channel-degradation node operating on simulation time (use_sim_time).
+It subscribes to /joint_states, buffers incoming messages in a FIFO queue to
+introduce a configurable artificial time delay (delay_ms), injects zero-mean
+Gaussian noise (measurement_noise_std) into joint position measurements, and
+republishes the degraded messages on /delayed_joint_states topic.
 """
-
 
 # Import necessary ROS 2 and Python libraries
 import rclpy

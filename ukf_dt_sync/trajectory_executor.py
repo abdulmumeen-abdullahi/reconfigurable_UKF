@@ -1,19 +1,20 @@
 """
-ROS 2 node that acts as an Action Client to control Ufractory xArm7 robotic arm. 
-It cyclically commands the arm through a predefined set of joint-space waypoints to 
-generate continuous movement.
+ROS 2 Action Client node for commanding an N-DOF robotic manipulator through a
+cyclic sequence of joint-space waypoints to generate continuous reference motion.
 
-Communication / Topics:
-It communicates 
-with the `/xarm7_controller/follow_joint_trajectory` Action Server.
-- Publishes to: 
-    - `/xarm7_controller/follow_joint_trajectory/_action/send_goal`
-    - `/xarm7_controller/follow_joint_trajectory/_action/cancel_goal`
-- Subscribes to: 
-    - `/xarm7_controller/follow_joint_trajectory/_action/get_result`
-    - `/xarm7_controller/follow_joint_trajectory/_action/feedback`
-    - `/xarm7_controller/follow_joint_trajectory/_action/status`
+Reads joint names, flattened waypoints, and target action topic dynamically from
+ROS 2 parameters and communicates with a FollowJointTrajectory Action Server
+(e.g., /xarm7_controller/follow_joint_trajectory):
+- Service Clients:
+  - <controller_action_topic>/_action/send_goal
+  - <controller_action_topic>/_action/get_result
+  - <controller_action_topic>/_action/cancel_goal
+
+- Subscribes to (Topics):
+  - <controller_action_topic>/_action/feedback
+  - <controller_action_topic>/_action/status
 """
+
 
 # Import necessary ROS 2 libraries and message types
 import rclpy
@@ -23,7 +24,6 @@ from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 from rclpy.parameter import Parameter
-# from rcl_interfaces.msg import ParameterDescriptor
 import time
 
 
@@ -33,8 +33,7 @@ class TrajectoryExecutor(Node):
         # Declare and read parameters
         self.declare_parameter('joint_names', [''])
         self.declare_parameter('controller_action_topic', '/default_controller/follow_joint_trajectory')
-        # self.declare_parameter('waypoints', [[0.0]])
-        # Declare an empty array, but strictly enforce that it must be populated with doubles
+        # Declare an empty array that strictly enforce that it must be populated with doubles
         self.declare_parameter('waypoints', Parameter.Type.DOUBLE_ARRAY)
         self.declare_parameter('waypoint_duration_sec', 1.5)
         
@@ -101,7 +100,7 @@ class TrajectoryExecutor(Node):
                 if not rclpy.ok():
                     break
                 self.get_logger().info(f'  Moving to waypoint {i+1}/{len(self.waypoints)}')
-                self.send_waypoint(wp, duration_sec=self.duration_sec) #duration_sec=1.5)
+                self.send_waypoint(wp, duration_sec=self.duration_sec)
                 time.sleep(0.3)  # brief pause between waypoints
 
 def main():
